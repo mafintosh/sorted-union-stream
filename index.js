@@ -15,7 +15,7 @@ var defaultKey = function(valA, valB) {
 	return valA < valB ? -1 : 1;
 };
 
-var reader = function(stream, toKey) {
+var reader = function(self, stream, toKey) {
 	var ended = false;
 	var data = null;
 	var key = null;
@@ -41,11 +41,24 @@ var reader = function(stream, toKey) {
 		onresult();
 	};
 
-	stream.on('readable', update);
-	stream.on('end', function() {
+	var onend = function() {
 		ended = true;
 		onresult();
+	};
+
+	stream.on('readable', update);
+
+	stream.on('error', function(err) {
+		self.emit('error', err);
+		self.destroy();
 	});
+
+	stream.on('close', function() {
+		if (stream._readableState.ended) return;
+		onend();
+	});
+
+	stream.on('end', onend);
 
 	return function(callback) {
 		if (data) return callback(data, consume);
@@ -64,8 +77,8 @@ var Union = function(a, b, toKey) {
 	this._a = a;
 	this._b = b;
 
-	this._readA = reader(a, toKey);
-	this._readB = reader(b, toKey);
+	this._readA = reader(this, a, toKey);
+	this._readB = reader(this, b, toKey);
 };
 
 util.inherits(Union, Readable);
