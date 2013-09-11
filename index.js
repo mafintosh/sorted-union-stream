@@ -102,7 +102,7 @@ Union.prototype.destroy = function() {
 	this.destroyed = true;
 	destroy(this._a);
 	destroy(this._b);
-	this.emit('close');
+	this.push(null);
 };
 
 module.exports = Union;
