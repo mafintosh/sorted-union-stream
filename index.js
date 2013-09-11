@@ -10,31 +10,34 @@ var destroy = function(stream) {
 	if (stream.readable && stream.destroy) stream.destroy();
 };
 
-var defaultCompare = function(valA, valB) {
+var defaultKey = function(valA, valB) {
 	if (valA === valB) return 0;
 	return valA < valB ? -1 : 1;
 };
 
-var reader = function(stream) {
+var reader = function(stream, toKey) {
 	var ended = false;
 	var data = null;
+	var key = null;
 	var fn;
 
 	var consume = function() {
 		data = null;
+		key = null;
 	};
 
 	var onresult = function() {
 		if (!fn) return;
 		var tmp = fn;
 		fn = undefined;
-		tmp(data, consume);
+		tmp(data, key, consume);
 	};
 
 	var update = function() {
 		if (!fn) return;
 		data = stream.read();
 		if (data === null && !ended) return;
+		key = toKey(data);
 		onresult();
 	};
 
@@ -52,26 +55,25 @@ var reader = function(stream) {
 	};
 };
 
-var Union = function(a, b, compare) {
-	if (!(this instanceof Union)) return new Union(a, b, compare);
+var Union = function(a, b, toKey) {
+	if (!(this instanceof Union)) return new Union(a, b, toKey);
 	Readable.call(this, {objectMode:true, highWaterMark:16});
-	if (!compare) compare = defaultCompare;
+	if (!toKey) toKey = defaultKey;
 
-	this.destroyed = false;
+	this._destroyed = false;
 	this._a = a;
 	this._b = b;
 
-	this._compare = compare;
-	this._readA = reader(a);
-	this._readB = reader(b);
+	this._readA = reader(a, toKey);
+	this._readB = reader(b, toKey);
 };
 
 util.inherits(Union, Readable);
 
 Union.prototype._read = function() {
 	var self = this;
-	this._readA(function(valA, consumeA) {
-		self._readB(function(valB, consumeB) {
+	this._readA(function(valA, keyA, consumeA) {
+		self._readB(function(valB, keyB, consumeB) {
 			if (!valA && !valB) return self.push(null);
 
 			if (!valA) {
@@ -83,10 +85,9 @@ Union.prototype._read = function() {
 				return self.push(valA);
 			}
 
-			var diff = self._compare(valA, valB);
-			if (!diff) return consumeA();
+			if (keyA === keyB) return consumeA();
 
-			if (diff < 0) {
+			if (keyA < keyB) {
 				consumeA();
 				return self.push(valA);
 			}
@@ -98,8 +99,8 @@ Union.prototype._read = function() {
 };
 
 Union.prototype.destroy = function() {
-	if (this.destroyed) return;
-	this.destroyed = true;
+	if (this._destroyed) return;
+	this._destroyed = true;
 	destroy(this._a);
 	destroy(this._b);
 	this.push(null);
