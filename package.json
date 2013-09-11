@@ -1,0 +1,12 @@
+{
+  "name": "sorted-union-stream",
+  "version": "0.1.0",
+  "repository": "git://github.com/mafintosh/sorted-union-stream.git",
+  "license": "MIT",
+  "description": "Merge two streams that emit sorted data",
+  "keywords": ["union", "sorted", "stream"],
+  "author": "Mathias Buus Madsen <mathiasbuus@gmail.com>",
+  "scripts": {
+  	"test": "node test.js"
+  }
+}
