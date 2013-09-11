@@ -1,12 +1,10 @@
-# sorted-intersect-stream
+# sorted-union-stream
 
 Get the union of two sorted streams
 
 	npm install sorted-union-stream
 
 ## Usage
-
-It is easy to use
 
 ``` js
 var union = require('sorted-union-stream');
@@ -42,11 +40,11 @@ no more data
 
 ## Streaming objects
 
-If you are streaming objects you should use `compare` function as the third parameter.
+If you are streaming objects you should use a `compare` function as the third parameter.
 
 * `compare(value1, value2)` should return `0` if the values are equal.
-* `compare(value1, value2)` should return `-1` if value1 is smaller than value2.
-* `compare(value1, value2)` should return `1` if value1 is larger than value2.
+* `compare(value1, value2)` should return `< 0` if value1 is smaller than value2.
+* `compare(value1, value2)` should return `> 0` if value1 is larger than value2.
 
 ``` js
 var sorted1 = es.readArray([{key:'a'}, {key:'b'}, {key:'c'}]);
@@ -57,8 +55,17 @@ var u = union(sorted1, sorted2, function(value1, value2) {
 });
 
 union.on('data', function(data) {
-	console.log(data); // will print {key:'b'}
+	console.log(data);
 });
+```
+
+Running the above will print
+
+```
+{key:'a'}
+{key:'b'}
+{key:'c'}
+{key:'d'}
 ```
 
 ## License
