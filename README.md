@@ -40,11 +40,10 @@ no more data
 
 ## Streaming objects
 
-If you are streaming objects you should use a `compare` function as the third parameter.
+If you are streaming objects you should add a `toKey` function as the third parameter.
+`toKey` should return an key representation of the data that can be used to compare objects.
 
-* `compare(value1, value2)` should return `0` if the values are equal.
-* `compare(value1, value2)` should return `< 0` if value1 is smaller than value2.
-* `compare(value1, value2)` should return `> 0` if value1 is larger than value2.
+_The keys MUST be sorted_
 
 ``` js
 var sorted1 = es.readArray([{key:'a'}, {key:'b'}, {key:'c'}]);
