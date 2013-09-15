@@ -16,6 +16,8 @@ var defaultKey = function(valA, valB) {
 };
 
 var reader = function(self, stream, toKey) {
+	stream = stream2(stream);
+
 	var ended = false;
 	var data = null;
 	var key = null;
