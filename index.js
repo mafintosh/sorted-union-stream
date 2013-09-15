@@ -61,8 +61,8 @@ var reader = function(self, stream, toKey) {
 	stream.on('end', onend);
 
 	return function(callback) {
-		if (data) return callback(data, consume);
-		if (ended) return callback(null, consume);
+		if (data) return callback(data, key, consume);
+		if (ended) return callback(null, null, consume);
 		fn = callback;
 		update();
 	};
