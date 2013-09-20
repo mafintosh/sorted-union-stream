@@ -1,6 +1,6 @@
 {
   "name": "sorted-union-stream",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "repository": "git://github.com/mafintosh/sorted-union-stream.git",
   "license": "MIT",
   "description": "Get the union of two sorted streams",
