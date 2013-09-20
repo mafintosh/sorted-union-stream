@@ -4,6 +4,8 @@ Get the union of two sorted streams
 
 	npm install sorted-union-stream
 
+[![build status](https://secure.travis-ci.org/mafintosh/sorted-union-stream.png)](http://travis-ci.org/mafintosh/sorted-union-stream)
+
 ## Usage
 
 ``` js
