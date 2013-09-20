@@ -1,5 +1,5 @@
 var assert = require('assert');
-var Readable = require('stream').Readable;
+var Readable = require('stream').Readable || require('readable-stream').Readable;
 var union = require('./index');
 
 var a = new Readable({objectMode:true});
