@@ -1,5 +1,5 @@
 var util = require('util');
-var Readable = require('stream').Readable;
+var Readable = require('stream').Readable || require('readable-stream').Readable;
 
 var stream2 = function(stream) {
 	if (stream._readableState) return stream;
