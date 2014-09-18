@@ -1,7 +1,10 @@
 {
   "name": "sorted-union-stream",
   "version": "0.2.5",
-  "repository": "git://github.com/mafintosh/sorted-union-stream.git",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mafintosh/sorted-union-stream.git"
+  },
   "license": "MIT",
   "description": "Get the union of two sorted streams",
   "keywords": [
@@ -19,5 +22,10 @@
   "devDependencies": {
     "from2-array": "0.0.3",
     "tape": "^3.0.0"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/mafintosh/sorted-union-stream/issues"
+  },
+  "homepage": "https://github.com/mafintosh/sorted-union-stream",
+  "main": "index.js"
 }
