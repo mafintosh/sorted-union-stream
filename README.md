@@ -15,17 +15,17 @@ var union = require('sorted-union-stream')
 var from = require('from2-array')
 
 // es.readArray converts an array into a stream
-var sorted1 = from([0,10,24,42,43,50,55])
-var sorted2 = from([10,42,53,55,60])
+var sorted1 = from.obj([0,10,24,42,43,50,55])
+var sorted2 = from.obj([10,42,53,55,60])
 
 // combine the two streams into a single sorted stream
 var u = union(sorted1, sorted2)
 
 u.on('data', function(data) {
-	console.log(data)
+  console.log(data)
 })
 u.on('end', function() {
-	console.log('no more data')
+  console.log('no more data')
 })
 ```
 
@@ -52,15 +52,15 @@ If this property is not present you should add a `toKey` function as the third p
 _The keys MUST be sorted_
 
 ``` js
-var sorted1 = from([{foo:'a'}, {foo:'b'}, {foo:'c'}])
-var sorted2 = from([{foo:'b'}, {foo:'d'}])
+var sorted1 = from.obj([{foo:'a'}, {foo:'b'}, {foo:'c'}])
+var sorted2 = from.obj([{foo:'b'}, {foo:'d'}])
 
 var u = union(sorted1, sorted2, function(data) {
-	return data.foo // the foo property is sorted
+  return data.foo // the foo property is sorted
 })
 
 union.on('data', function(data) {
-	console.log(data)
+  console.log(data)
 });
 ```
 
