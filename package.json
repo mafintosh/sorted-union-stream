@@ -1,6 +1,6 @@
 {
   "name": "sorted-union-stream",
-  "version": "0.2.5",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/mafintosh/sorted-union-stream.git"
