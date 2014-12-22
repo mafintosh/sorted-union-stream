@@ -15,7 +15,7 @@ var union = require('sorted-union-stream')
 var from = require('from2-array')
 
 // es.readArray converts an array into a stream
-var sorted1 = from.obj([0,10,24,42,43,50,55])
+var sorted1 = from.obj([1,10,24,42,43,50,55])
 var sorted2 = from.obj([10,42,53,55,60])
 
 // combine the two streams into a single sorted stream
@@ -32,11 +32,13 @@ u.on('end', function() {
 Running the above example will print
 
 ```
-0
+1
 10
 24
 42
 43
+50
+53
 55
 60
 no more data
