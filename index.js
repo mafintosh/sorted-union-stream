@@ -50,8 +50,7 @@ var reader = function(self, stream, toKey) {
   stream.on('readable', update)
 
   stream.on('error', function(err) {
-    self.emit('error', err)
-    self.destroy()
+    self.destroy(err)
   })
 
   stream.on('close', function() {
@@ -116,13 +115,13 @@ Union.prototype._read = function() {
   })
 }
 
-Union.prototype.destroy = function() {
+Union.prototype.destroy = function(err) {
   if (this._destroyed) return
   this._destroyed = true
   destroy(this._a)
   destroy(this._b)
+  if (err) this.emit('error', err)
   this.emit('close')
-  this.push(null)
-};
+}
 
 module.exports = Union
