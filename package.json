@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "from2-array": "0.0.3",
+    "standard": "^3.3.0",
     "tape": "^3.0.0"
   },
   "bugs": {
