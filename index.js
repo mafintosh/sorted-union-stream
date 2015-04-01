@@ -100,7 +100,7 @@ Union.prototype._read = function() {
       }
 
       if (keyA === keyB) {
-        consumeA()
+        consumeB()
         return self._read()
       }
 
