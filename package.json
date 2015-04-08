@@ -17,7 +17,8 @@
     "test": "tape test.js"
   },
   "dependencies": {
-    "readable-stream": "^1.0.31"
+    "readable-stream": "^1.0.31",
+    "sorted-set-stream": "^1.0.0"
   },
   "devDependencies": {
     "from2-array": "0.0.3",

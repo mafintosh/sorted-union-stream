@@ -1,43 +1,39 @@
-var StreamSet = require('./lib/sorted-stream-set.js')
+var SetStream = require('sorted-set-stream')
 var util = require('util')
 
 var Union = function (a, b, toKey) {
   if (!(this instanceof Union)) return new Union(a, b, toKey)
-  StreamSet.call(this, a, b, toKey)
+  SetStream.call(this, a, b, toKey)
 }
 
-util.inherits(Union, StreamSet)
+util.inherits(Union, SetStream)
 
-Union.prototype._read = function () {
+Union.prototype.setFunction = function (keys, vals, consumes) {
   var self = this
-  this._readA(function (valA, keyA, consumeA) {
-    self._readB(function (valB, keyB, consumeB) {
-      if (!valA && !valB) return self.push(null)
+  if (!vals || (!vals.a && !vals.b)) return self.push(null)
 
-      if (!valA) {
-        consumeB()
-        return self.push(valB)
-      }
+  if (!vals.a) {
+    consumes.b()
+    return self.push(vals.b)
+  }
 
-      if (!valB) {
-        consumeA()
-        return self.push(valA)
-      }
+  if (!vals.b) {
+    consumes.a()
+    return self.push(vals.a)
+  }
 
-      if (keyA === keyB) {
-        consumeB()
-        return self._read()
-      }
+  if (keys.a === keys.b) {
+    consumes.b()
+    return self._read()
+  }
 
-      if (keyA < keyB) {
-        consumeA()
-        return self.push(valA)
-      }
+  if (keys.a < keys.b) {
+    consumes.a()
+    return self.push(vals.a)
+  }
 
-      consumeB()
-      self.push(valB)
-    })
-  })
+  consumes.b()
+  self.push(vals.b)
 }
 
 module.exports = Union
