@@ -1,32 +1,48 @@
 var SetStream = require('sorted-set-stream')
 
-module.exports = function (a, b, toKey) {
-  var stream = SetStream(a, b, toKey)
-  stream.next = function (keys, vals, consumes) {
+var defaultKey = function (val) {
+  return val.key || val
+}
+
+module.exports = function (a, b, opts) {
+  var stream = SetStream(a, b)
+  if (!opts) opts = {}
+
+  function toKey (val) {
+    if (!val) return
+    if (!opts.toKey) opts.toKey = defaultKey
+    return opts.toKey(val)
+  }
+
+  stream.next = function (err, dataA, dataB, nextA, nextB) {
     var self = this
-    if (!vals || (!vals.a && !vals.b)) return self.push(null)
+
+    var vals = {a: dataA, b: dataB}
+    var keys = {a: toKey(dataA), b: toKey(dataB)}
+
+    if (!vals.a && !vals.b) return self.push(null)
 
     if (!vals.a) {
-      consumes.b()
+      nextB()
       return self.push(vals.b)
     }
 
     if (!vals.b) {
-      consumes.a()
+      nextA()
       return self.push(vals.a)
     }
 
     if (keys.a === keys.b) {
-      consumes.b()
+      nextB()
       return self._read()
     }
 
     if (keys.a < keys.b) {
-      consumes.a()
+      nextA()
       return self.push(vals.a)
     }
 
-    consumes.b()
+    nextB()
     self.push(vals.b)
   }
   return stream

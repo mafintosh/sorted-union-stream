@@ -117,8 +117,10 @@ tape('custom objects', function (t) {
   b.push({bar: '20'})
   b.push(null)
 
-  var u = union(a, b, function (data) {
-    return data.bar
+  var u = union(a, b, {
+    toKey: function (data) {
+      return data.bar
+    }
   })
 
   var expected = [{bar: '04'}, {bar: '06'}, {bar: '10'}, {bar: '11'}, {bar: '14'}, {bar: '15'}, {bar: '20'}, {bar: '22'}]

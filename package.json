@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "readable-stream": "^1.0.31",
-    "sorted-set-stream": "^1.0.0"
+    "sorted-set-stream": "^2.0.0"
   },
   "devDependencies": {
     "from2-array": "0.0.3",
