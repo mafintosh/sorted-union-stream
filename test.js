@@ -1,4 +1,4 @@
-var Readable = require('readable-stream').Readable
+var Readable = require('stream').Readable
 var tape = require('tape')
 var union = require('./')
 
