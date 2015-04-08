@@ -48,7 +48,7 @@ no more data
 
 If you are streaming objects sorting is based on `.key`.
 
-If this property is not present you should add a `toKey` function as the third parameter.
+If this property is not present you should add a `toKey` function as an optional parameter.
 `toKey` should return an key representation of the data that can be used to compare objects.
 
 _The keys MUST be sorted_
@@ -57,8 +57,10 @@ _The keys MUST be sorted_
 var sorted1 = from.obj([{foo:'a'}, {foo:'b'}, {foo:'c'}])
 var sorted2 = from.obj([{foo:'b'}, {foo:'d'}])
 
-var u = union(sorted1, sorted2, function(data) {
-  return data.foo // the foo property is sorted
+var u = union(sorted1, sorted2, {
+  toKey: function(data) {
+    return data.foo // the foo property is sorted
+  }
 })
 
 union.on('data', function(data) {
