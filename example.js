@@ -1,5 +1,5 @@
 var union = require('./')
-var from = require('from2-array')
+var from = require('from2')
 
 var sorted1 = from.obj([{key: 'a'}, {key: 'b'}, {key: 'c'}])
 var sorted2 = from.obj([{key: 'b'}, {key: 'd'}])

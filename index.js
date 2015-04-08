@@ -1,127 +1,59 @@
-var util = require('util')
-var Readable = require('readable-stream').Readable
-
-var stream2 = function (stream) {
-  if (stream._readableState) return stream
-  return new Readable({objectMode: true, highWaterMark: 16}).wrap(stream)
-}
-
-var destroy = function (stream) {
-  if (stream.readable && stream.destroy) stream.destroy()
-}
+var iterate = require('stream-iterate')
+var from = require('from2')
 
 var defaultKey = function (val) {
   return val.key || val
 }
 
-var reader = function (self, stream, toKey) {
-  stream = stream2(stream)
+var union = function (streamA, streamB, toKey) {
+  var readA = iterate(streamA)
+  var readB = iterate(streamB)
 
-  var ended = false
-  var data = null
-  var key = null
-  var fn
-
-  var consume = function () {
-    data = null
-    key = null
-  }
-
-  var onresult = function () {
-    if (!fn) return
-    var tmp = fn
-    fn = undefined
-    tmp(data, key, consume)
-  }
-
-  var update = function () {
-    if (!fn) return
-    data = stream.read()
-    if (data === null && !ended) return
-    key = toKey(data)
-    onresult()
-  }
-
-  var onend = function () {
-    ended = true
-    onresult()
-  }
-
-  stream.on('readable', update)
-
-  stream.on('error', function (err) {
-    self.destroy(err)
-  })
-
-  stream.on('close', function () {
-    if (stream._readableState.ended) return
-    onend()
-  })
-
-  stream.on('end', onend)
-
-  return function (callback) {
-    if (data) return callback(data, key, consume)
-    if (ended) return callback(null, null, consume)
-    fn = callback
-    update()
-  }
-}
-
-var Union = function (a, b, toKey) {
-  if (!(this instanceof Union)) return new Union(a, b, toKey)
-  Readable.call(this, {objectMode: true, highWaterMark: 16})
   if (!toKey) toKey = defaultKey
 
-  this._destroyed = false
-  this._a = a
-  this._b = b
+  var stream = from.obj(function loop(size, cb) {
+    readA(function (err, dataA, nextA) {
+      if (err) return cb(err)
+      readB(function (err, dataB, nextB) {
+        if (err) return cb(err)
 
-  this._readA = reader(this, a, toKey)
-  this._readB = reader(this, b, toKey)
-}
+        if (!dataA && !dataB) return cb(null, null)
 
-util.inherits(Union, Readable)
+        if (!dataA) {
+          nextB()
+          return cb(null, dataB)
+        }
 
-Union.prototype._read = function () {
-  var self = this
-  this._readA(function (valA, keyA, consumeA) {
-    self._readB(function (valB, keyB, consumeB) {
-      if (!valA && !valB) return self.push(null)
+        if (!dataB) {
+          nextA()
+          return cb(null, dataA)
+        }
 
-      if (!valA) {
-        consumeB()
-        return self.push(valB)
-      }
+        var keyA = toKey(dataA)
+        var keyB = toKey(dataB)
 
-      if (!valB) {
-        consumeA()
-        return self.push(valA)
-      }
+        if (keyA === keyB) {
+          nextB()
+          return loop(size, cb)
+        }
 
-      if (keyA === keyB) {
-        consumeB()
-        return self._read()
-      }
+        if (keyA < keyB) {
+          nextA()
+          return cb(null, dataA)
+        }
 
-      if (keyA < keyB) {
-        consumeA()
-        return self.push(valA)
-      }
-
-      consumeB()
-      self.push(valB)
+        nextB()
+        cb(null, dataB)
+      })
     })
   })
+
+  stream.on('close', function() {
+    if (a.destroy) a.destroy()
+    if (b.destroy) b.destroy()
+  })
+
+  return stream
 }
 
-Union.prototype.destroy = function (err) {
-  if (this._destroyed) return
-  this._destroyed = true
-  destroy(this._a)
-  destroy(this._b)
-  if (err) this.emit('error', err)
-  this.emit('close')
-}
-
-module.exports = Union
+module.exports = union

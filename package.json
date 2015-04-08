@@ -17,10 +17,10 @@
     "test": "tape test.js"
   },
   "dependencies": {
-    "readable-stream": "^1.0.31"
+    "from2": "^1.3.0",
+    "stream-iterate": "^1.1.0"
   },
   "devDependencies": {
-    "from2-array": "0.0.3",
     "standard": "^3.3.0",
     "tape": "^3.0.0"
   },
