@@ -1,6 +1,4 @@
 var SetStream = require('sorted-set-stream')
-var util = require('util')
-
 
 module.exports = function (a, b, toKey) {
   var stream = SetStream(a, b, toKey)
