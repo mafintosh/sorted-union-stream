@@ -11,7 +11,7 @@ var union = function (streamA, streamB, toKey) {
 
   if (!toKey) toKey = defaultKey
 
-  var stream = from.obj(function loop(size, cb) {
+  var stream = from.obj(function loop (size, cb) {
     readA(function (err, dataA, nextA) {
       if (err) return cb(err)
       readB(function (err, dataB, nextB) {
@@ -48,7 +48,7 @@ var union = function (streamA, streamB, toKey) {
     })
   })
 
-  stream.on('close', function() {
+  stream.on('close', function () {
     if (streamA.destroy) streamA.destroy()
     if (streamB.destroy) streamB.destroy()
   })
