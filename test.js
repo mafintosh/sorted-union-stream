@@ -132,3 +132,20 @@ tape('custom objects', function (t) {
     t.end()
   })
 })
+
+tape('destroy stream', function (t) {
+  var a = new Readable({objectMode: true})
+  var b = new Readable({objectMode: true})
+
+  t.plan(2)
+
+  a.destroy = function () {
+    t.ok(true)
+  }
+
+  b.destroy = function () {
+    t.ok(true)
+  }
+
+  union(a, b).destroy()
+})
