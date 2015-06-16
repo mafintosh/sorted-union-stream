@@ -137,6 +137,9 @@ tape('destroy stream', function (t) {
   var a = new Readable({objectMode: true})
   var b = new Readable({objectMode: true})
 
+  a._read = function () {}
+  b._read = function () {}
+
   t.plan(2)
 
   a.destroy = function () {
