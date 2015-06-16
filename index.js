@@ -49,8 +49,8 @@ var union = function (streamA, streamB, toKey) {
   })
 
   stream.on('close', function() {
-    if (a.destroy) a.destroy()
-    if (b.destroy) b.destroy()
+    if (streamA.destroy) streamA.destroy()
+    if (streamB.destroy) streamB.destroy()
   })
 
   return stream
