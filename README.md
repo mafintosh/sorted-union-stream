@@ -12,11 +12,11 @@ npm install sorted-union-stream
 
 ``` js
 var union = require('sorted-union-stream')
-var from = require('from2-array')
+var from = require('from2')
 
-// es.readArray converts an array into a stream
-var sorted1 = from.obj([1,10,24,42,43,50,55])
-var sorted2 = from.obj([10,42,53,55,60])
+// from converts an array into a stream
+var sorted1 = from.obj([1, 10, 24, 42, 43, 50, 55])
+var sorted2 = from.obj([10, 42, 53, 55, 60])
 
 // combine the two streams into a single sorted stream
 var u = union(sorted1, sorted2)
@@ -68,11 +68,11 @@ union.on('data', function(data) {
 
 Running the above will print
 
-```
-{foo:'a'}
-{foo:'b'}
-{foo:'c'}
-{foo:'d'}
+``` js
+{foo: 'a'}
+{foo: 'b'}
+{foo: 'c'}
+{foo: 'd'}
 ```
 
 ## License
