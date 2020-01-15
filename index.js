@@ -54,12 +54,12 @@ module.exports = class SortedUnionStream extends Readable {
     if (cmp < 0) {
       this.push(l)
       this.left.consume()
-      return this._read(cb)
+      return cb(null)
     }
 
     this.push(r)
     this.right.consume()
-    this._read(cb)
+    cb(null)
   }
 
   _predestroy () {
