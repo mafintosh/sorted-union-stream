@@ -1,59 +1,129 @@
-var iterate = require('stream-iterate')
-var from = require('from2')
+const { Readable } = require('streamx')
 
-var defaultKey = function (val) {
-  return val.key || val
-}
+module.exports = class SortedUnionStream extends Readable {
+  constructor (left, right, compare) {
+    super()
 
-var union = function (streamA, streamB, toKey) {
-  var readA = iterate(streamA)
-  var readB = iterate(streamB)
+    if (!left.destroy || !right.destroy) throw new Error('Only modern stream supported')
 
-  if (!toKey) toKey = defaultKey
+    this.left = new Peaker(left)
+    this.right = new Peaker(right)
+    this.compare = compare || defaultCompare
+    this._missing = 2
+    this._onclose = null
+    this._track(left)
+    this._track(right)
+  }
 
-  var stream = from.obj(function loop (size, cb) {
-    readA(function (err, dataA, nextA) {
+  _read (cb) {
+    const self = this
+
+    this.left.read(function (err, l) {
       if (err) return cb(err)
-      readB(function (err, dataB, nextB) {
+      self.right.read(function (err, r) {
         if (err) return cb(err)
-
-        if (!dataA && !dataB) return cb(null, null)
-
-        if (!dataA) {
-          nextB()
-          return cb(null, dataB)
-        }
-
-        if (!dataB) {
-          nextA()
-          return cb(null, dataA)
-        }
-
-        var keyA = toKey(dataA)
-        var keyB = toKey(dataB)
-
-        if (keyA === keyB) {
-          nextB()
-          return loop(size, cb)
-        }
-
-        if (keyA < keyB) {
-          nextA()
-          return cb(null, dataA)
-        }
-
-        nextB()
-        cb(null, dataB)
+        self._readBoth(l, r, cb)
       })
     })
-  })
+  }
 
-  stream.on('close', function () {
-    if (streamA.destroy) streamA.destroy()
-    if (streamB.destroy) streamB.destroy()
-  })
+  _readBoth (l, r, cb) {
+    if (l === null && r === null) {
+      this.push(null)
+      return cb(null)
+    }
+    if (l === null) {
+      this.push(r)
+      this.right.consume()
+      return cb(null)
+    }
+    if (r === null) {
+      this.push(l)
+      this.left.consume()
+      return cb(null)
+    }
 
-  return stream
+    const cmp = this.compare(l, r)
+
+    if (cmp === 0) {
+      this.push(l)
+      this.left.consume()
+      this.right.consume()
+      return cb(null)
+    }
+    if (cmp < 0) {
+      this.push(l)
+      this.left.consume()
+      return this._read(cb)
+    }
+
+    this.push(r)
+    this.right.consume()
+    this._read(cb)
+  }
+
+  _predestroy () {
+    this.left.stream.destroy()
+    this.right.stream.destroy()
+  }
+
+  _destroy (cb) {
+    if (!this.missing) return cb(null)
+    this._onclose = cb
+  }
+
+  _track (stream) {
+    const self = this
+    let closed = false
+
+    stream.on('error', onclose)
+    stream.on('close', onclose)
+
+    function onclose (err) {
+      if (err && typeof err === 'object') self.destroy(err)
+      if (closed) return
+      closed = true
+      if (!--self._missing && self._onclose) self._onclose()
+    }
+  }
 }
 
-module.exports = union
+class Peaker {
+  constructor (stream) {
+    this.stream = stream
+    this.stream.on('readable', this._onreadable.bind(this))
+    this.stream.on('end', this._onend.bind(this))
+    this.value = null
+    this._reading = null
+    this._ended = false
+  }
+
+  read (cb) {
+    if (this.value) return cb(null, this.value)
+    this._reading = cb
+    this._onreadable()
+  }
+
+  consume () {
+    this.value = null
+  }
+
+  _onend () {
+    this._ended = true
+    this._onreadable()
+  }
+
+  _onreadable () {
+    if (this.value) return
+    this.value = this.stream.read()
+    if ((this.value !== null || this._ended) && this._reading) {
+      const cb = this._reading
+      this._reading = null
+      cb(null, this.value)
+    }
+  }
+}
+
+function defaultCompare (a, b) {
+  return a < b ? -1 : a > b ? 1 : 0
+}

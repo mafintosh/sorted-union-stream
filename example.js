@@ -1,10 +1,10 @@
-var union = require('./')
-var from = require('from2')
+const Union = require('./')
+const { Readable } = require('streamx')
 
-var sorted1 = from.obj([{key: 'a'}, {key: 'b'}, {key: 'c'}])
-var sorted2 = from.obj([{key: 'b'}, {key: 'd'}])
+const sorted1 = Readable.from([{ key: 'a' }, { key: 'b' }, { key: 'c' }])
+const sorted2 = Readable.from([{ key: 'b' }, { key: 'd' }])
 
-var u = union(sorted1, sorted2)
+const u = new Union(sorted1, sorted2)
 
 u.on('data', function (data) {
   console.log(data)

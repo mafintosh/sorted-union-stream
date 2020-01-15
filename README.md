@@ -11,15 +11,15 @@ npm install sorted-union-stream
 ## Usage
 
 ``` js
-var union = require('sorted-union-stream')
-var from = require('from2')
+const union = require('sorted-union-stream')
+const { Readable } = require('streamx')
 
 // from converts an array into a stream
-var sorted1 = from.obj([1, 10, 24, 42, 43, 50, 55])
-var sorted2 = from.obj([10, 42, 53, 55, 60])
+const sorted1 = Readable.from([1, 10, 24, 42, 43, 50, 55])
+const sorted2 = Readable.from([10, 42, 53, 55, 60])
 
 // combine the two streams into a single sorted stream
-var u = union(sorted1, sorted2)
+const u = new Union(sorted1, sorted2)
 
 u.on('data', function(data) {
   console.log(data)
@@ -46,33 +46,28 @@ no more data
 
 ## Streaming objects
 
-If you are streaming objects sorting is based on `.key`.
-
-If this property is not present you should add a `toKey` function as the third parameter.
-`toKey` should return an key representation of the data that can be used to compare objects.
-
-_The keys MUST be sorted_
+If you are streaming objects sorting is based on the compare function you can pass as the 3rd argument.
 
 ``` js
-var sorted1 = from.obj([{foo:'a'}, {foo:'b'}, {foo:'c'}])
-var sorted2 = from.obj([{foo:'b'}, {foo:'d'}])
+const sorted1 = Readable.from([{ foo:'a' }, { foo:'b' }, { foo:'c' }])
+const sorted2 = Readable.from([{ foo:'b' }, { foo:'d' }])
 
-var u = union(sorted1, sorted2, function(data) {
-  return data.foo // the foo property is sorted
+const u = new Union(sorted1, sorted2, function(a, b) {
+  return a.foo < b.foo ? -1 : a.foo > b.foo ? 1 : 0 
 })
 
 union.on('data', function(data) {
   console.log(data)
-});
+})
 ```
 
 Running the above will print
 
 ``` js
-{foo: 'a'}
-{foo: 'b'}
-{foo: 'c'}
-{foo: 'd'}
+{ foo: 'a' }
+{ foo: 'b' }
+{ foo: 'c' }
+{ foo: 'd' }
 ```
 
 ## License
