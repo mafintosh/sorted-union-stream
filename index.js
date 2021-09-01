@@ -1,18 +1,15 @@
 const { Readable } = require('streamx')
 
 module.exports = class SortedUnionStream extends Readable {
-  constructor (left, right, compare, opts) {
+  constructor (left, right, opts) {
     super()
-    if (typeof compare !== 'function') {
-      opts = compare
-      compare = null
-    }
 
+    if (typeof opts === 'function') opts = { compare: opts }
     if (!left.destroy || !right.destroy) throw new Error('Only modern stream supported')
 
     this.left = new Peaker(left)
     this.right = new Peaker(right)
-    this.compare = compare || defaultCompare
+    this.compare = (opts && opts.compare) || defaultCompare
 
     this._missing = 2
     this._onclose = null
