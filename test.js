@@ -88,3 +88,21 @@ tape('destroy stream', function (t) {
 
   new Union(a, b).destroy()
 })
+
+tape('both option', function (t) {
+  const a = Readable.from([4, 6, 10, 14, 15, 20, 22])
+  const b = Readable.from([6, 11, 20])
+
+  const u = new Union(a, b, { both: true })
+  const expected = [4, 6, 6, 10, 11, 14, 15, 20, 20, 22]
+
+  u.on('data', function (data) {
+    t.same(data, expected.shift())
+  })
+
+  u.on('end', function () {
+    t.same(expected.length, 0, 'no more data')
+    t.end()
+  })
+
+})

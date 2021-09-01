@@ -1,16 +1,23 @@
 const { Readable } = require('streamx')
 
 module.exports = class SortedUnionStream extends Readable {
-  constructor (left, right, compare) {
+  constructor (left, right, compare, opts) {
     super()
+    if (typeof compare !== 'function') {
+      opts = compare
+      compare = null
+    }
 
     if (!left.destroy || !right.destroy) throw new Error('Only modern stream supported')
 
     this.left = new Peaker(left)
     this.right = new Peaker(right)
     this.compare = compare || defaultCompare
+
     this._missing = 2
     this._onclose = null
+    this._both = opts && opts.both
+
     this._track(left)
     this._track(right)
   }
@@ -47,6 +54,7 @@ module.exports = class SortedUnionStream extends Readable {
 
     if (cmp === 0) {
       this.push(l)
+      if (this._both) this.push(r)
       this.left.consume()
       this.right.consume()
       return cb(null)
