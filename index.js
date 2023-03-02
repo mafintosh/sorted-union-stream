@@ -13,7 +13,7 @@ module.exports = class SortedUnionStream extends Readable {
 
     this._missing = 2
     this._onclose = null
-    this._both = opts && opts.both
+    this._both = !!(opts && opts.both)
     this._map = (opts && opts.map) || defaultMap
 
     this._track(left)
@@ -37,40 +37,38 @@ module.exports = class SortedUnionStream extends Readable {
       this.push(null)
       return cb(null)
     }
+
     if (l === null) {
-      this._mapAndPush(null, r)
-      this.right.consume()
-      return cb(null)
+      this._push(null, r, cb)
+      return
     }
     if (r === null) {
-      this._mapAndPush(l, null)
-      this.left.consume()
-      return cb(null)
+      this._push(l, null, cb)
+      return
     }
 
     const cmp = this.compare(l, r)
 
     if (cmp === 0) {
-      this._mapAndPush(l, r)
-      if (this._both) this._mapAndPush(l, r)
-      this.left.consume()
-      this.right.consume()
-      return cb(null)
-    }
-    if (cmp < 0) {
-      this._mapAndPush(l, null)
-      this.left.consume()
-      return cb(null)
+      this._push(l, r, cb)
+      return
     }
 
-    this._mapAndPush(null, r)
-    this.right.consume()
-    cb(null)
+    if (cmp < 0) this._push(l, null, cb)
+    else this._push(null, r, cb)
   }
 
-  _mapAndPush (l, r) {
+  _push (l, r, cb) {
     const data = this._map(l, r)
-    if (data !== null) this.push(data)
+    const pushed = this.push(data)
+
+    if (this._both && l && r) this.push(data)
+
+    if (l !== null) this.left.consume()
+    if (r !== null) this.right.consume()
+
+    if (pushed) cb(null)
+    else this._read(cb)
   }
 
   _predestroy () {
