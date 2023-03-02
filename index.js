@@ -14,6 +14,7 @@ module.exports = class SortedUnionStream extends Readable {
     this._missing = 2
     this._onclose = null
     this._both = opts && opts.both
+    this._map = (opts && opts.map) || defaultMap
 
     this._track(left)
     this._track(right)
@@ -37,12 +38,12 @@ module.exports = class SortedUnionStream extends Readable {
       return cb(null)
     }
     if (l === null) {
-      this.push(r)
+      this.push(this._map(null, r))
       this.right.consume()
       return cb(null)
     }
     if (r === null) {
-      this.push(l)
+      this.push(this._map(l, null))
       this.left.consume()
       return cb(null)
     }
@@ -50,19 +51,19 @@ module.exports = class SortedUnionStream extends Readable {
     const cmp = this.compare(l, r)
 
     if (cmp === 0) {
-      this.push(l)
-      if (this._both) this.push(r)
+      this.push(this._map(l, r))
+      if (this._both) this.push(this._map(l, r))
       this.left.consume()
       this.right.consume()
       return cb(null)
     }
     if (cmp < 0) {
-      this.push(l)
+      this.push(this._map(l, null))
       this.left.consume()
       return cb(null)
     }
 
-    this.push(r)
+    this.push(this._map(null, r))
     this.right.consume()
     cb(null)
   }
@@ -131,4 +132,8 @@ class Peaker {
 
 function defaultCompare (a, b) {
   return a < b ? -1 : a > b ? 1 : 0
+}
+
+function defaultMap (a, b) {
+  return a === null ? b : a
 }
