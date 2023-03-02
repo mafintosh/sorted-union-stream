@@ -104,5 +104,22 @@ tape('both option', function (t) {
     t.same(expected.length, 0, 'no more data')
     t.end()
   })
+})
 
+tape('map option with filter', function (t) {
+  const a = Readable.from([4, 6, 10, 20, 22])
+  const b = Readable.from([6, 11, 20])
+
+  const u = new Union(a, b, { map: (e1, e2) => e1 === e2 ? null : e1 || e2 })
+
+  const expected = [4, 10, 11, 22]
+
+  u.on('data', function (data) {
+    t.same(data, expected.shift())
+  })
+
+  u.on('end', function () {
+    t.same(expected.length, 0, 'no more data')
+    t.end()
+  })
 })
