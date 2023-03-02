@@ -38,12 +38,12 @@ module.exports = class SortedUnionStream extends Readable {
       return cb(null)
     }
     if (l === null) {
-      this.push(this._map(null, r))
+      this._mapAndPush(null, r)
       this.right.consume()
       return cb(null)
     }
     if (r === null) {
-      this.push(this._map(l, null))
+      this._mapAndPush(l, null)
       this.left.consume()
       return cb(null)
     }
@@ -51,21 +51,26 @@ module.exports = class SortedUnionStream extends Readable {
     const cmp = this.compare(l, r)
 
     if (cmp === 0) {
-      this.push(this._map(l, r))
-      if (this._both) this.push(this._map(l, r))
+      this._mapAndPush(l, r)
+      if (this._both) this._mapAndPush(l, r)
       this.left.consume()
       this.right.consume()
       return cb(null)
     }
     if (cmp < 0) {
-      this.push(this._map(l, null))
+      this._mapAndPush(l, null)
       this.left.consume()
       return cb(null)
     }
 
-    this.push(this._map(null, r))
+    this._mapAndPush(null, r)
     this.right.consume()
     cb(null)
+  }
+
+  _mapAndPush (l, r) {
+    const data = this._map(l, r)
+    if (data !== null) this.push(data)
   }
 
   _predestroy () {
