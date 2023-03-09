@@ -72,8 +72,8 @@ module.exports = class SortedUnionStream extends Readable {
   }
 
   _predestroy () {
-    this.left.stream.destroy()
-    this.right.stream.destroy()
+    this.left.destroy()
+    this.right.destroy()
   }
 
   _destroy (cb) {
@@ -117,18 +117,28 @@ class Peaker {
     this.value = null
   }
 
+  destroy () {
+    this._continue(new Error('Destroyed'), null)
+    this.stream.destroy()
+  }
+
   _onend () {
     this._ended = true
     this._onreadable()
   }
 
+  _continue (err, value) {
+    if (this._reading === null) return
+    const cb = this._reading
+    this._reading = null
+    cb(err, value)
+  }
+
   _onreadable () {
     if (this.value) return
     this.value = this.stream.read()
-    if ((this.value !== null || this._ended) && this._reading) {
-      const cb = this._reading
-      this._reading = null
-      cb(null, this.value)
+    if ((this.value !== null || this._ended)) {
+      this._continue(null, this.value)
     }
   }
 }
